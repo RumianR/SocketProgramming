@@ -3,6 +3,7 @@ from socket import AF_INET, socket, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from threading import Thread
 
 from irc_code import patterns
+import argparse
 
 
 class Channel(patterns.Publisher):
@@ -30,7 +31,7 @@ class User(patterns.Subscriber):
 
     def send(self, msg):
         try:
-            self.sock.send(bytes(msg + '\n', 'utf8'))
+            self.sock.send(bytes(msg + '\n', 'utf8')) #THIS RETURNS NONE FOR SOME REASON
         except Exception:
             pass
 
@@ -90,6 +91,7 @@ def irc_server_listen():
 
 
 def manage_socket_connection(user):
+    # import pdb; pdb.set_trace()
     user.channel.add_subscriber(user)
     user.send('Welcome to channel: #global')
     while True:
@@ -116,23 +118,32 @@ def manage_socket_connection(user):
 
         elif msg.startswith("/QUIT "):
             print(f'{user.address} has disconnected')
+            # import pdb; pdb.set_trace()
             remove_user(user)
             break
 
         elif msg:
             try:
+                # import pdb; pdb.set_trace()
                 user.channel.notify(msg)
             except Exception:
                 print(user.address + ' caused exception.')
                 remove_user(user)
                 break
 
+def parse_args(args):
+    parser = argparse.ArgumentParser(description='CLI for the server')
+    parser.add_argument('--port', required=True,
+                        help='Port for the server')
+    return parser.parse_args(args)
 
 users = []
 channels = [Channel('#global')]
 
+args = parse_args(None)
 HOST = ''  # Symbolic name meaning all available interfaces
-PORT = 1460  # Arbitrary non-privileged port
+PORT = int(args.port)
+# PORT = 50007  # Arbitrary non-privileged port
 BUFFER_SIZE = 512  # "these messages shall not exceed 512 characters in length"
 
 server = socket(AF_INET, SOCK_STREAM)
