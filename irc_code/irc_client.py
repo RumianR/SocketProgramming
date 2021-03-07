@@ -12,12 +12,18 @@ Description:
 """
 import asyncio
 import logging
-
+from socket import AF_INET, socket, SOCK_STREAM
 import patterns
 import view
 
+from threading import Thread
+
+
 logging.basicConfig(filename='view.log', level=logging.DEBUG)
 logger = logging.getLogger()
+client_socket = socket(AF_INET, SOCK_STREAM)
+BUFFER_SIZE = 512
+server_connected = False
 
 
 class IRCClient(patterns.Subscriber):
@@ -25,6 +31,7 @@ class IRCClient(patterns.Subscriber):
     def __init__(self):
         super().__init__()
         self.username = str()
+        self.nickname = str()
         self._run = True
 
     def set_view(self, view):
@@ -42,7 +49,33 @@ class IRCClient(patterns.Subscriber):
 
     def process_input(self, msg):
         # Will need to modify this
+        if not server_connected:
+
+            if not self.nickname:
+                if msg.startswith("nickname:"):
+                    self.nickname = msg.split(":")[1]
+                    self.add_msg(f"Got it nickname is {self.nickname}")
+                else:
+                    self.add_msg("Please enter nickname in the format 'nickname:<nickname>'")
+                return
+            if not self.username and self.nickname:
+                if msg.startswith("username:"):
+                    self.username = msg.split(":")[1]
+                    self.add_msg(f"Got it username is {self.username}")
+                    self.add_msg("Connecting")
+                    conn_server()
+                    Thread(target=recv, args=(client_socket, BUFFER_SIZE, self,)).start()
+                else:
+                    self.add_msg("Please enter username in the format 'username:<username>'")
+                return
+
         self.add_msg(msg)
+
+        try:
+            client_socket.send(bytes(msg, 'utf8'))
+        except Exception:
+            logger.error("Could not send msg")
+
         if msg.lower().startswith('/quit'):
             # Command that leads to the closure of the process
             raise KeyboardInterrupt
@@ -54,39 +87,67 @@ class IRCClient(patterns.Subscriber):
         """
         Driver of your IRC Client
         """
-        # Remove this section in your code, simply for illustration purposes
-        for x in range(10):
-            self.add_msg(f"call after View.loop: {x}")
-            await asyncio.sleep(2)
 
     def close(self):
         # Terminate connection
+
         logger.debug(f"Closing IRC Client object")
         pass
 
 
+def conn_server():
+    host = 'localhost'
+    port = 1460
+
+    try:
+        client_socket.connect((host, port))
+        server_connected = True
+
+    except Exception:
+        error = 'No connection could be made because the target machine is either offline or is refusing the ' \
+                'connection. '
+        logger.info(error)
+
+
+def recv(server_socket, buffer_size, client):
+    # If the connection is lost, properly stop the program.
+    while True:
+        try:
+            data = server_socket.recv(buffer_size).decode('utf8')
+            client.add_msg(data)
+        except Exception:
+            server_socket.close()
+            client.add_msg('The connection with the server has been lost')
+
 
 def main(args):
     # Pass your arguments where necessary
+
     client = IRCClient()
     logger.info(f"Client object created")
+
     with view.View() as v:
         logger.info(f"Entered the context of a View object")
         client.set_view(v)
         logger.debug(f"Passed View object to IRC Client")
         v.add_subscriber(client)
         logger.debug(f"IRC Client is subscribed to the View (to receive user input)")
+
+        # thread = Thread(target=recv, args=(client_socket, BUFFER_SIZE, client,)).start()
+
         async def inner_run():
             await asyncio.gather(
                 v.run(),
                 client.run(),
                 return_exceptions=True,
             )
+
         try:
-            asyncio.run( inner_run() )
+            asyncio.run(inner_run())
         except KeyboardInterrupt as e:
             logger.debug(f"Signifies end of process")
     client.close()
+
 
 if __name__ == "__main__":
     # Parse your command line arguments here
