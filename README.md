@@ -38,7 +38,7 @@ depending on how many clients you decide to run.
   
  ## CLI Example
 * Client Usage <br />
- ![alt text](https://drive.google.com/file/d/1Zef_JvHryUx5BPaHNtx_2JiFEZLA-dWu/view?usp=sharing)
+ ![alt text](https://github.com/RumianR/SocketProgramming/blob/master/445_2.PNG?raw=true)
 
 * Server Usage <br />
- ![alt text](https://github.com/RumianR/SocketProgramming/master/445_2.PNG?raw=true)
+ ![alt text](https://github.com/RumianR/SocketProgramming/blob/master/445_1.PNG?raw=true)

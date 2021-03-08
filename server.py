@@ -30,7 +30,7 @@ class User(patterns.Subscriber):
 
     def send(self, msg,):
         try:
-            self.sock.send(bytes(f'{msg}', 'utf8')) #THIS RETURNS NONE FOR SOME REASON
+            self.sock.send(bytes(f'{msg}', 'utf8'))
         except Exception:
             pass
 
@@ -60,9 +60,6 @@ def edit_nickname(user, nickname):
 
 
 def edit_user(user, username):
-    # It must be noted that realname parameter must be the last parameter,
-    # because it may contain space characters
-    # and must be prefixed with acolon (':') to make sure this is recognised as such.
     user.username = username
     user.send('Username set to ' + username + '.')
 
@@ -118,7 +115,6 @@ def manage_socket_connection(user):
 
         elif msg:
             try:
-                # import pdb; pdb.set_trace()
                 user.channel.notify(msg)
             except Exception:
                 print(user.address + ' caused exception.')
@@ -135,9 +131,8 @@ users = []
 channels = [Channel('#global')]
 
 args = parse_args(None)
-HOST = ''  # Symbolic name meaning all available interfaces
-PORT = int(args.port)
-# PORT = 50007  # Arbitrary non-privileged port
+HOST = ''
+PORT = int(args.port) # 50007
 BUFFER_SIZE = 512  # "these messages shall not exceed 512 characters in length"
 
 server = socket(AF_INET, SOCK_STREAM)
@@ -146,7 +141,7 @@ server.bind((HOST, PORT))
 
 server.listen(10)
 
-print('The server has succefully launched. Now waiting for client connection...')
+print('The server has successfully been launched. Now waiting for client connection....')
 thread = Thread(target=irc_server_listen)
 thread.start()
 thread.join()
