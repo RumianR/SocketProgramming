@@ -34,6 +34,7 @@ def recv(server_socket, buffer_size):
             CONNECTED = False
             server_socket.close()
             sys.exit()
+            break
 
 
 args = parse_args(None)
@@ -62,6 +63,9 @@ while True:
     except Exception:
         exit()
     socket.sendall(bytes(data, 'utf8'))
+
+    if "/QUIT " in data:
+        exit()
 
     # print(f'{NAME} sent', repr(data))
 
