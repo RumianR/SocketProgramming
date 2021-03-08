@@ -10,7 +10,7 @@ import curses
 import logging
 import pathlib
 
-import patterns
+from irc_code import patterns
 
 logging.basicConfig(filename='view.log', level=logging.DEBUG)
 logger = logging.getLogger()

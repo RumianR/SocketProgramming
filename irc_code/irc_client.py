@@ -13,16 +13,13 @@ Description:
 import asyncio
 import logging
 from socket import AF_INET, socket, SOCK_STREAM
-import patterns
-import view
-
-from threading import Thread
+from irc_code import patterns
+from irc_code import view
 
 
 logging.basicConfig(filename='view.log', level=logging.DEBUG)
 logger = logging.getLogger()
 client_socket = socket(AF_INET, SOCK_STREAM)
-BUFFER_SIZE = 512
 server_connected = False
 
 
@@ -58,16 +55,16 @@ class IRCClient(patterns.Subscriber):
                 else:
                     self.add_msg("Please enter nickname in the format 'nickname:<nickname>'")
                 return
-            if not self.username and self.nickname:
-                if msg.startswith("username:"):
-                    self.username = msg.split(":")[1]
-                    self.add_msg(f"Got it username is {self.username}")
-                    self.add_msg("Connecting")
-                    conn_server()
-                    Thread(target=recv, args=(client_socket, BUFFER_SIZE, self,)).start()
-                else:
-                    self.add_msg("Please enter username in the format 'username:<username>'")
-                return
+            # if not self.username and self.nickname:
+            #     if msg.startswith("username:"):
+            #         self.username = msg.split(":")[1]
+            #         self.add_msg(f"Got it username is {self.username}")
+            #         self.add_msg("Connecting")
+            #         conn_server()
+            #         Thread(target=recv, args=(client_socket, BUFFER_SIZE, self,)).start()
+            #     else:
+            #         self.add_msg("Please enter username in the format 'username:<username>'")
+            #     return
 
         self.add_msg(msg)
 
@@ -95,31 +92,6 @@ class IRCClient(patterns.Subscriber):
         pass
 
 
-def conn_server():
-    host = 'localhost'
-    port = 1460
-
-    try:
-        client_socket.connect((host, port))
-        server_connected = True
-
-    except Exception:
-        error = 'No connection could be made because the target machine is either offline or is refusing the ' \
-                'connection. '
-        logger.info(error)
-
-
-def recv(server_socket, buffer_size, client):
-    # If the connection is lost, properly stop the program.
-    while True:
-        try:
-            data = server_socket.recv(buffer_size).decode('utf8')
-            client.add_msg(data)
-        except Exception:
-            server_socket.close()
-            client.add_msg('The connection with the server has been lost')
-
-
 def main(args):
     # Pass your arguments where necessary
 
@@ -133,7 +105,6 @@ def main(args):
         v.add_subscriber(client)
         logger.debug(f"IRC Client is subscribed to the View (to receive user input)")
 
-        # thread = Thread(target=recv, args=(client_socket, BUFFER_SIZE, client,)).start()
 
         async def inner_run():
             await asyncio.gather(

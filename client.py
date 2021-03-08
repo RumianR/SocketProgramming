@@ -27,10 +27,11 @@ def recv(server_socket, buffer_size):
             datarecv = server_socket.recv(buffer_size).decode('utf8')
             if datarecv == "":
                 raise Exception
-            print(f'{HOST}:', repr(datarecv))
+            print(f'{HOST} (empty message):', repr(datarecv))
 
         except Exception:
-            print('The connection with the server has been lost')
+            print('Lost server connection')
+            # close socket and exit the system
             server_socket.close()
             sys.exit()
             break
@@ -41,6 +42,7 @@ HOST = args.server
 PORT = int(args.port)
 NAME = args.name
 NICKNAME = args.nickname
+# IRC messages shall not exceed 512 characters in length
 BUFFER_SIZE = 512
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,7 +54,7 @@ socket.send(bytes(f'{NICKNAME}: /NICK {NICKNAME}', 'utf8'))
 
 while True:
     try:
-        data = sys.stdin.readline()[:-1]
+        data = input()
         data = f':{NICKNAME} {data}'
     except Exception:
         exit()
