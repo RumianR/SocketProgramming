@@ -41,4 +41,4 @@ depending on how many clients you decide to run.
  ![alt text](https://drive.google.com/file/d/1Zef_JvHryUx5BPaHNtx_2JiFEZLA-dWu/view?usp=sharing)
 
 * Server Usage <br />
- ![alt text](https://drive.google.com/file/d/1JxSrlvVCVuAkAuUs-R0MM_pfBnexw7B8/view?usp=sharing)
+ ![alt text](https://github.com/RumianR/SocketProgramming/master/445_2.PNG?raw=true)
