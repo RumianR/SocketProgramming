@@ -20,18 +20,17 @@ class User(patterns.Subscriber):
         self.address = address[0]
         self.nickname = None
         self.username = None
-        self.realname = None
         self.channel = channels[0]
 
     def update(self, msg):
-        self.sock.send(bytes(msg + '\n', 'utf8'))
+        self.send(msg)
 
     def recv(self):
         return self.sock.recv(BUFFER_SIZE).decode('utf8')
 
-    def send(self, msg):
+    def send(self, msg,):
         try:
-            self.sock.send(bytes(msg + '\n', 'utf8')) #THIS RETURNS NONE FOR SOME REASON
+            self.sock.send(bytes(f'{msg}', 'utf8')) #THIS RETURNS NONE FOR SOME REASON
         except Exception:
             pass
 
@@ -60,14 +59,12 @@ def edit_nickname(user, nickname):
                 f'{previous_nickname} now identifies themselves as {nickname}')
 
 
-def edit_user(user, username, realname):
+def edit_user(user, username):
     # It must be noted that realname parameter must be the last parameter,
     # because it may contain space characters
     # and must be prefixed with acolon (':') to make sure this is recognised as such.
     user.username = username
-    user.realname = realname
     user.send('Username set to ' + username + '.')
-    user.send('Real name set to ' + realname + '.')
 
 
 def remove_user(user):
@@ -105,18 +102,15 @@ def manage_socket_connection(user):
             remove_user(user)
             break
 
-        if msg.startswith("/NICK "):
-            print("YES")
-            spl_word = '/NICK '
-            res = msg.partition(spl_word)[2]
+        if "/NICK " in msg:
+            res = msg.split("/NICK ")[1]
             edit_nickname(user, res)
 
-        elif msg.startswith("/USER "):
-            spl_word = '/USER '
-            res = msg.partition(spl_word)[2]
-            edit_nickname(res)
+        elif "/USER " in msg:
+            res = msg.split("/USER ")[1]
+            edit_user(user, res)
 
-        elif msg.startswith("/QUIT "):
+        elif "/QUIT " in msg:
             print(f'{user.address} has disconnected')
             # import pdb; pdb.set_trace()
             remove_user(user)
